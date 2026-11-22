@@ -53,11 +53,14 @@ jobs:
 
       - name: Ek include'lari indir (a_mysql, sscanf2, zcmd)
         if: matrix.name == 'oyuncu'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           export GIT_TERMINAL_PROMPT=0
           cd .deps
-          git clone --depth 1 --branch "${MYSQL_TAG}" https://github.com/pBlueG/SA-MP-MySQL.git mysql \
-            || git clone --depth 1 https://github.com/pBlueG/SA-MP-MySQL.git mysql
+          # a_mysql.inc kaynak repoda degil, release zip'inin icinde
+          mkdir -p mysql && gh release download "${MYSQL_TAG}" -R pBlueG/SA-MP-MySQL -p "*.zip" -D mysql
+          for z in mysql/*.zip; do unzip -oq "$z" -d "mysql/$(basename "$z" .zip)"; done
           git clone --depth 1 https://github.com/Y-Less/sscanf.git sscanf
           # zcmd: birden fazla kaynak denenir; hicbiri calismazsa repodaki zcmd.inc kullanilir
           for url in https://github.com/Southclaws/zcmd.git https://github.com/Zeex/zcmd.git https://github.com/YashasSamaga/zcmd.git; do
@@ -71,7 +74,7 @@ jobs:
             [ -n "$LOCAL" ] && cp "$LOCAL" include/
           fi
           for f in a_mysql sscanf2 zcmd; do
-            test -f include/$f.inc || { echo "::error::$f.inc bulunamadi (zcmd icin repoya zcmd.inc ekle)"; exit 1; }
+            test -f include/$f.inc || { echo "::error::$f.inc bulunamadi"; exit 1; }
           done
 
       - name: ${{ matrix.name }}.pwn derle
