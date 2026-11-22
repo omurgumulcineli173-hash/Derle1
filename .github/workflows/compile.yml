@@ -41,25 +41,37 @@ jobs:
           tar -xzf pawnc.tar.gz
           echo "PAWNCC_DIR=$PWD/pawnc-${PAWNC_VERSION}-linux" >> "$GITHUB_ENV"
 
-      - name: Include dosyalarini indir (a_samp)
+      - name: Include dosyalarini indir (pawn-stdlib + a_samp)
         run: |
+          export GIT_TERMINAL_PROMPT=0
           mkdir -p .deps/include && cd .deps
+          git clone --depth 1 https://github.com/pawn-lang/pawn-stdlib.git pawn-stdlib
           git clone --depth 1 https://github.com/pawn-lang/samp-stdlib.git samp-stdlib
-          cp samp-stdlib/*.inc include/
+          find pawn-stdlib samp-stdlib -name "*.inc" -exec cp {} include/ \;
+          test -f include/core.inc || { echo "::error::core.inc bulunamadi"; exit 1; }
+          test -f include/a_samp.inc || { echo "::error::a_samp.inc bulunamadi"; exit 1; }
 
       - name: Ek include'lari indir (a_mysql, sscanf2, zcmd)
         if: matrix.name == 'oyuncu'
         run: |
+          export GIT_TERMINAL_PROMPT=0
           cd .deps
           git clone --depth 1 --branch "${MYSQL_TAG}" https://github.com/pBlueG/SA-MP-MySQL.git mysql \
             || git clone --depth 1 https://github.com/pBlueG/SA-MP-MySQL.git mysql
           git clone --depth 1 https://github.com/Y-Less/sscanf.git sscanf
-          git clone --depth 1 https://github.com/Zeex/zcmd.git zcmd
+          # zcmd: birden fazla kaynak denenir; hicbiri calismazsa repodaki zcmd.inc kullanilir
+          for url in https://github.com/Southclaws/zcmd.git https://github.com/Zeex/zcmd.git https://github.com/YashasSamaga/zcmd.git; do
+            git clone --depth 1 "$url" zcmd && break || true
+          done
           find mysql -name "a_mysql.inc" -exec cp {} include/ \; -quit
           find sscanf -name "sscanf2.inc" -exec cp {} include/ \; -quit
-          find zcmd -name "zcmd.inc" -exec cp {} include/ \; -quit
+          find zcmd -name "zcmd.inc" -exec cp {} include/ \; -quit 2>/dev/null || true
+          if [ ! -f include/zcmd.inc ]; then
+            LOCAL=$(find .. -name "zcmd.inc" -not -path "../.deps/*" | head -n 1)
+            [ -n "$LOCAL" ] && cp "$LOCAL" include/
+          fi
           for f in a_mysql sscanf2 zcmd; do
-            test -f include/$f.inc || { echo "::error::$f.inc bulunamadi"; exit 1; }
+            test -f include/$f.inc || { echo "::error::$f.inc bulunamadi (zcmd icin repoya zcmd.inc ekle)"; exit 1; }
           done
 
       - name: ${{ matrix.name }}.pwn derle
