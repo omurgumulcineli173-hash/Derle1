@@ -16,18 +16,16 @@ jobs:
           curl -L -o pawn.tar.gz https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-linux.tar.gz
           tar xf pawn.tar.gz
 
-      - name: Download SA-MP includes
-        run: git clone --depth 1 https://github.com/pawn-lang/samp-stdlib.git
+      - name: Download includes
+        run: |
+          git clone --depth 1 https://github.com/pawn-lang/samp-stdlib.git
+          git clone --depth 1 https://github.com/pawn-lang/pawn-stdlib.git
 
       - name: Compile
         run: |
           export LD_LIBRARY_PATH="$PWD/pawnc-3.10.10-linux/lib"
-          echo "--- compiler klasoru ---"
-          find pawnc-3.10.10-linux -maxdepth 2
-          CORE=$(find "$PWD" -name core.inc | head -n1)
-          echo "core.inc: $CORE"
-          INC=$(dirname "$CORE")
-          ./pawnc-3.10.10-linux/bin/pawncc ultimate_admin.pwn -i"$PWD/samp-stdlib" -i"$INC" -o"$PWD/ultimate_admin.amx"
+          find pawn-stdlib -name core.inc
+          ./pawnc-3.10.10-linux/bin/pawncc ultimate_admin.pwn -i"$PWD/samp-stdlib" -i"$PWD/pawn-stdlib" -o"$PWD/ultimate_admin.amx"
 
       - name: Upload AMX
         uses: actions/upload-artifact@v4
