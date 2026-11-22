@@ -1,6 +1,6 @@
 /*
 =====================================================================
-  ULTIMATE ADMIN PANEL v3.0  -  SA-MP 0.3.7 Filterscript
+  ApplyAnimation(playerid, "PARACHUTE", "null", 0.0, 0, 0, 0, 0, 0);
   Sadece <a_samp> gerektirir (zcmd / sscanf / dini YOK).
 
   KURULUM
