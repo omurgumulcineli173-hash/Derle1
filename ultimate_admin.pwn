@@ -1823,7 +1823,7 @@ public OnPlayerConnect(playerid)
     {
         if (IsPlayerConnected(i) && gInvis[i]) ApplyInvisFor(playerid, i);
     }
-    PreloadAnimLib(playerid, "PARACHUTE");
+    ApplyAnimation(playerid, "PARACHUTE", "null", 0.0, 0, 0, 0, 0, 0);
     if (gLevel[playerid] > 0)
     {
         format(s, sizeof s, "Admin girisi: %s (%s). Panel icin /admin", n, gRank[gLevel[playerid]]);
